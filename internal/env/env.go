@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	"github.com/google/uuid"
 )
 
 const (
@@ -12,18 +14,15 @@ const (
 )
 
 var appVersion *string
+var apiToken *string
 
-type Environment struct {
-	appVersion string
-}
+type Environment struct{}
 
 func New() *Environment {
-	if appVersion == nil {
-		readAppVersion()
-	}
-	return &Environment{
-		appVersion: *appVersion,
-	}
+	readAppVersion()
+	readApiToken()
+
+	return &Environment{}
 }
 
 func (e *Environment) AppName() string {
@@ -34,8 +33,16 @@ func (e *Environment) AppPort() string {
 	return os.Getenv("AppPort")
 }
 
+func (e *Environment) Env() string {
+	return os.Getenv("Env")
+}
+
+func (e *Environment) GetAddrPort() string {
+	return fmt.Sprint(":", e.AppPort())
+}
+
 func (e *Environment) AppVersion() string {
-	return e.appVersion
+	return *appVersion
 }
 
 func readAppVersionErr(err error) {
@@ -73,4 +80,18 @@ func readAppVersion() {
 		appVersion = &defaultVer
 	}
 	appVersion = &appVersionString
+}
+
+func (e *Environment) ApiToken() string {
+	return *apiToken
+}
+
+func readApiToken() {
+	envApiToken := os.Getenv("ApiToken")
+	if envApiToken == "" {
+		apiTokenStr := uuid.New().String()
+		apiToken = &apiTokenStr
+	}
+
+	apiToken = &envApiToken
 }

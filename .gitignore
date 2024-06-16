@@ -1,0 +1,12 @@
+# debug file
+__debug_bin*
+
+# REST folder
+REST/
+
+# vscode
+.vscode/settings.json
+
+# env file
+.env
+*_env.sh

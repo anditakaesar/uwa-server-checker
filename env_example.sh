@@ -1,0 +1,7 @@
+export AppName="Uwa Server Check"
+export AppPort="5000"
+export Env="development"
+export ApiToken="123"
+export LogglyBaseUrl=""
+export LogglyToken=""
+export LogglyTag=""
