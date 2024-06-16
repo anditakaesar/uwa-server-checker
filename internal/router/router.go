@@ -74,7 +74,7 @@ func (router *Router) Verify(originalHandler http.Handler) http.Handler {
 
 func (router *Router) LogRequest(originalHandler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		httRequest := map[string]interface{}{
+		httpRequest := map[string]interface{}{
 			"requestMethod": strings.ToUpper(r.Method),
 			"requestUrl":    r.URL.RequestURI(),
 			"userAgent":     r.UserAgent(),
@@ -83,7 +83,7 @@ func (router *Router) LogRequest(originalHandler http.Handler) http.Handler {
 			"query":    r.URL.Query(),
 			"host":     r.Host,
 		}
-		router.Log.Info(fmt.Sprintf("%s %s", r.Method, r.URL.String()), zap.Any("httRequest", httRequest))
+		router.Log.Info(fmt.Sprintf("%s %s", r.Method, r.URL.String()), zap.Any("httpRequest", httpRequest))
 		originalHandler.ServeHTTP(w, r)
 	})
 }
