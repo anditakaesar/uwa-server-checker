@@ -10,3 +10,6 @@ REST/
 # env file
 .env
 *_env.sh
+
+# vendor folder
+vendor/

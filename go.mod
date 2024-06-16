@@ -7,4 +7,7 @@ require (
 	go.uber.org/zap v1.27.0
 )
 
-require go.uber.org/multierr v1.10.0 // indirect
+require (
+	github.com/PaulSonOfLars/gotgbot/v2 v2.0.0-rc.27
+	go.uber.org/multierr v1.10.0 // indirect
+)

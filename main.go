@@ -8,6 +8,7 @@ import (
 	"github.com/anditakaesar/uwa-server-checker/internal/env"
 	"github.com/anditakaesar/uwa-server-checker/internal/initializer"
 	internalRouter "github.com/anditakaesar/uwa-server-checker/internal/router"
+	"github.com/anditakaesar/uwa-server-checker/modules/telebot"
 )
 
 func main() {
@@ -24,6 +25,13 @@ func main() {
 	}
 
 	defer init.Log.Flush()
+
+	botObj, err := telebot.New(init.Log)
+	if err != nil {
+		log.Fatalf("couldn't start bot with err: %v", err)
+	}
+
+	go botObj.Run()
 
 	server := &http.Server{
 		Addr:    env.GetAddrPort(),

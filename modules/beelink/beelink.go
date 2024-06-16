@@ -1,15 +1,12 @@
 package beelink
 
 import (
-	"fmt"
 	"net/http"
 
 	internalRouter "github.com/anditakaesar/uwa-server-checker/internal/router"
 )
 
 const modulePrefix string = "beelink"
-
-type Handler struct{}
 
 func New(router *internalRouter.Router) {
 	handler := &Handler{}
@@ -32,22 +29,4 @@ func getStatus(h *Handler) internalRouter.Endpoint {
 		Path:       "status",
 		Handler:    h.getStatus(),
 	}
-}
-
-func (handler *Handler) getInfo() http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-
-		fmt.Fprint(w, `{"message":"success"}`)
-	})
-}
-
-func (handler *Handler) getStatus() http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-
-		fmt.Fprint(w, `{"message":"success", "path":"status"}`)
-	})
 }

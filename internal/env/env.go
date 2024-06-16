@@ -15,14 +15,20 @@ const (
 
 var appVersion *string
 var apiToken *string
+var envPtr *Environment
 
 type Environment struct{}
 
 func New() *Environment {
+	if envPtr != nil {
+		return envPtr
+	}
 	readAppVersion()
 	readApiToken()
+	readBotToken()
 
-	return &Environment{}
+	envPtr = &Environment{}
+	return envPtr
 }
 
 func (e *Environment) AppName() string {
