@@ -6,3 +6,6 @@ export LogglyBaseUrl=""
 export LogglyToken=""
 export LogglyTag=""
 export BotToken=""
+export ValidUserIDs=""
+### Telebot Commands
+export TelebotGetCommand="curl -s api/tunnels"

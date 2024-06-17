@@ -16,6 +16,7 @@ type Telebot struct {
 	Bot        *gotgbot.Bot
 	Updater    *ext.Updater
 	Dispatcher *ext.Dispatcher
+	Env        *env.Environment
 	Log        logger.Interface
 }
 
@@ -40,13 +41,16 @@ func New(log logger.Interface) (*Telebot, error) {
 		Bot:        bot,
 		Updater:    updater,
 		Dispatcher: dispatcher,
+		Env:        env,
 		Log:        log,
 	}, nil
 }
 
 func (telebot *Telebot) InitCommands() {
-	command := command.Command{}
-	telebot.Dispatcher.AddHandler(handlers.NewCommand("start", command.Start))
+	command := command.Command{
+		Env: telebot.Env,
+	}
+	telebot.Dispatcher.AddHandler(handlers.NewCommand("get", command.Get))
 }
 
 func (telebot *Telebot) Run() {

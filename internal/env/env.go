@@ -13,9 +13,12 @@ const (
 	defaultAppVersion string = "0.0.0"
 )
 
-var appVersion *string
-var apiToken *string
-var envPtr *Environment
+var (
+	envPtr       *Environment
+	appVersion   *string
+	apiToken     *string
+	validUserIds []string
+)
 
 type Environment struct{}
 
@@ -26,6 +29,7 @@ func New() *Environment {
 	readAppVersion()
 	readApiToken()
 	readBotToken()
+	readValidUserIDs()
 
 	envPtr = &Environment{}
 	return envPtr
