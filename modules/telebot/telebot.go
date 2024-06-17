@@ -7,6 +7,8 @@ import (
 	"github.com/PaulSonOfLars/gotgbot/v2"
 	"github.com/PaulSonOfLars/gotgbot/v2/ext"
 	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers"
+	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers/filters/callbackquery"
+
 	"github.com/anditakaesar/uwa-server-checker/adapter/docker"
 	"github.com/anditakaesar/uwa-server-checker/internal/env"
 	"github.com/anditakaesar/uwa-server-checker/internal/logger"
@@ -49,17 +51,19 @@ func New(log logger.Interface, docker docker.Interface) (*Telebot, error) {
 	}, nil
 }
 
-func (telebot *Telebot) InitCommands() {
-	command := command.Command{
+func (telebot *Telebot) InitHandlers() {
+	cmd := command.Command{
 		Docker: telebot.Docker,
 		Env:    telebot.Env,
 	}
-	telebot.Dispatcher.AddHandler(handlers.NewCommand("get", command.Get))
-	telebot.Dispatcher.AddHandler(handlers.NewCommand("containers", command.Containers))
+	telebot.Dispatcher.AddHandler(handlers.NewCommand("get", telebot.ValidUserOnly(cmd.Get)))
+	telebot.Dispatcher.AddHandler(handlers.NewCommand("containers", telebot.ValidUserOnly(cmd.Containers)))
+	telebot.Dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix(command.StartCallbackPrefix), telebot.ValidUserOnly(cmd.GetStartCB)))
+	telebot.Dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix(command.StopCallbackPrefix), telebot.ValidUserOnly(cmd.GetStopCB)))
 }
 
 func (telebot *Telebot) Run() {
-	telebot.InitCommands()
+	telebot.InitHandlers()
 	err := telebot.Updater.StartPolling(telebot.Bot, &ext.PollingOpts{
 		DropPendingUpdates: true,
 		GetUpdatesOpts: &gotgbot.GetUpdatesOpts{

@@ -6,8 +6,12 @@ import (
 	docker "github.com/fsouza/go-dockerclient"
 )
 
+const DefaultTimeout uint = 5
+
 type Interface interface {
 	GetContainerList() ([]dto.Container, error)
+	StartContainer(containerID string) error
+	StopContainer(containerID string) error
 }
 
 type Docker struct {
@@ -46,4 +50,12 @@ func (d *Docker) GetContainerList() ([]dto.Container, error) {
 	}
 
 	return response, nil
+}
+
+func (d *Docker) StartContainer(containerID string) error {
+	return d.Client.StartContainer(containerID, nil)
+}
+
+func (d *Docker) StopContainer(containerID string) error {
+	return d.Client.StopContainer(containerID, DefaultTimeout)
 }
