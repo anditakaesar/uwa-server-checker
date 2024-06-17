@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.0](https://github.com/anditakaesar/uwa-server-checker/compare/v1.0.0...v1.1.0) (2024-06-17)
+
+
+### Features
+
+* add docker interface ([7b6ea84](https://github.com/anditakaesar/uwa-server-checker/commit/7b6ea84f9edb0becaf9ed78a8a58adaeb87c6f73))
+* update fetching version ([8212dd4](https://github.com/anditakaesar/uwa-server-checker/commit/8212dd419ad7d0e81f8d7b10ecd74251ff333ff4))
+
 ## 1.0.0 (2024-06-17)
 
 
