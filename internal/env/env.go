@@ -1,7 +1,10 @@
 package env
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 
@@ -9,7 +12,7 @@ import (
 )
 
 const (
-	fileAPPVersion    string = ".APP_VERSION"
+	fileAPPVersion    string = ".release-please-manifest.json"
 	defaultAppVersion string = "0.0.0"
 )
 
@@ -65,31 +68,34 @@ func readAppVersionErr(err error) {
 }
 
 func readAppVersion() {
-	file, err := os.Open(fileAPPVersion)
+	jsonFile, err := os.Open(fileAPPVersion)
 	if err != nil {
 		readAppVersionErr(err)
 	}
-	defer file.Close()
+	defer jsonFile.Close()
 
-	fileinfo, err := file.Stat()
-	if err != nil {
-		readAppVersionErr(err)
-	}
-
-	filesize := fileinfo.Size()
-	buffer := make([]byte, filesize)
-
-	_, err = file.Read(buffer)
+	byteValues, err := io.ReadAll(jsonFile)
 	if err != nil {
 		readAppVersionErr(err)
 	}
 
-	appVersionString := string(buffer)
-	if strings.TrimSpace(appVersionString) == "" {
+	version := map[string]string{}
+
+	err = json.Unmarshal(byteValues, &version)
+	if err != nil {
+		readAppVersionErr(err)
+	}
+
+	versionStr, ok := version["."]
+	if !ok {
+		readAppVersionErr(errors.New("failed to fetch data"))
+	}
+
+	if strings.TrimSpace(versionStr) == "" {
 		defaultVer := defaultAppVersion
 		appVersion = &defaultVer
 	}
-	appVersion = &appVersionString
+	appVersion = &versionStr
 }
 
 func (e *Environment) ApiToken() string {
