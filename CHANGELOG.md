@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/anditakaesar/uwa-server-checker/compare/v1.1.0...v1.2.0) (2024-06-17)
+
+
+### Features
+
+* add start and stop container control buttons ([ed934e1](https://github.com/anditakaesar/uwa-server-checker/commit/ed934e17029a41fbedc05e95a0dc7b517f21decc))
+
 ## [1.1.0](https://github.com/anditakaesar/uwa-server-checker/compare/v1.0.0...v1.1.0) (2024-06-17)
 
 
