@@ -13,3 +13,6 @@ REST/
 
 # vendor folder
 vendor/
+
+# build app
+app

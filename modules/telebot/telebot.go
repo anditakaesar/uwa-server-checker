@@ -7,6 +7,7 @@ import (
 	"github.com/PaulSonOfLars/gotgbot/v2"
 	"github.com/PaulSonOfLars/gotgbot/v2/ext"
 	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers"
+	"github.com/anditakaesar/uwa-server-checker/adapter/docker"
 	"github.com/anditakaesar/uwa-server-checker/internal/env"
 	"github.com/anditakaesar/uwa-server-checker/internal/logger"
 	"github.com/anditakaesar/uwa-server-checker/modules/telebot/command"
@@ -16,11 +17,12 @@ type Telebot struct {
 	Bot        *gotgbot.Bot
 	Updater    *ext.Updater
 	Dispatcher *ext.Dispatcher
+	Docker     docker.Interface
 	Env        *env.Environment
 	Log        logger.Interface
 }
 
-func New(log logger.Interface) (*Telebot, error) {
+func New(log logger.Interface, docker docker.Interface) (*Telebot, error) {
 	env := env.New()
 	bot, err := gotgbot.NewBot(env.BotToken(), nil)
 	if err != nil {
@@ -41,6 +43,7 @@ func New(log logger.Interface) (*Telebot, error) {
 		Bot:        bot,
 		Updater:    updater,
 		Dispatcher: dispatcher,
+		Docker:     docker,
 		Env:        env,
 		Log:        log,
 	}, nil
@@ -48,9 +51,11 @@ func New(log logger.Interface) (*Telebot, error) {
 
 func (telebot *Telebot) InitCommands() {
 	command := command.Command{
-		Env: telebot.Env,
+		Docker: telebot.Docker,
+		Env:    telebot.Env,
 	}
 	telebot.Dispatcher.AddHandler(handlers.NewCommand("get", command.Get))
+	telebot.Dispatcher.AddHandler(handlers.NewCommand("containers", command.Containers))
 }
 
 func (telebot *Telebot) Run() {
