@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/anditakaesar/uwa-server-checker/compare/v1.2.0...v1.3.0) (2024-06-22)
+
+
+### Features
+
+* update handler method using message ([1c47a14](https://github.com/anditakaesar/uwa-server-checker/commit/1c47a14f227437901d52345c00007813106fed43))
+
 ## [1.2.0](https://github.com/anditakaesar/uwa-server-checker/compare/v1.1.0...v1.2.0) (2024-06-17)
 
 
