@@ -7,12 +7,12 @@ import (
 	"github.com/PaulSonOfLars/gotgbot/v2"
 	"github.com/PaulSonOfLars/gotgbot/v2/ext"
 	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers"
-	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers/filters/callbackquery"
+	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers/filters/message"
 
 	"github.com/anditakaesar/uwa-server-checker/adapter/docker"
 	"github.com/anditakaesar/uwa-server-checker/internal/env"
 	"github.com/anditakaesar/uwa-server-checker/internal/logger"
-	"github.com/anditakaesar/uwa-server-checker/modules/telebot/command"
+	"github.com/anditakaesar/uwa-server-checker/modules/telebot/handler"
 )
 
 type Telebot struct {
@@ -52,14 +52,43 @@ func New(log logger.Interface, docker docker.Interface) (*Telebot, error) {
 }
 
 func (telebot *Telebot) InitHandlers() {
-	cmd := command.Command{
+	cmd := &handler.Handler{
 		Docker: telebot.Docker,
 		Env:    telebot.Env,
 	}
-	telebot.Dispatcher.AddHandler(handlers.NewCommand("get", telebot.ValidUserOnly(cmd.Get)))
-	telebot.Dispatcher.AddHandler(handlers.NewCommand("containers", telebot.ValidUserOnly(cmd.Containers)))
-	telebot.Dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix(command.StartCallbackPrefix), telebot.ValidUserOnly(cmd.GetStartCB)))
-	telebot.Dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix(command.StopCallbackPrefix), telebot.ValidUserOnly(cmd.GetStopCB)))
+
+	defaultMiddlewares := []MiddlewareFunc{
+		telebot.LoggingMiddleware,
+		telebot.ValidUserMiddleware,
+	}
+
+	// Commands
+	telebot.AddCommandHandler("get", cmd.Get, defaultMiddlewares...)
+	telebot.AddCommandHandler("containers", cmd.Containers, defaultMiddlewares...)
+
+	// Messages
+	telebot.AddMessagePrefixHandler(handler.StartContainerPrefix, cmd.StartContainer, defaultMiddlewares...)
+	telebot.AddMessagePrefixHandler(handler.StopContainerPrefix, cmd.StopContainer, defaultMiddlewares...)
+}
+
+func (telebot *Telebot) AddCommandHandler(command string, handlerFunc HandlerFunc, middlewareFuncs ...MiddlewareFunc) {
+	var wrappedHandlerFunc handlers.Response
+	for i := len(middlewareFuncs) - 1; i >= 0; i-- {
+		wrappedHandlerFunc = middlewareFuncs[i](handlerFunc)
+	}
+
+	telebot.Dispatcher.AddHandler(
+		handlers.NewCommand(command, wrappedHandlerFunc))
+}
+
+func (telebot *Telebot) AddMessagePrefixHandler(prefix string, handlerFunc HandlerFunc, middlewareFuncs ...MiddlewareFunc) {
+	var wrappedHandlerFunc handlers.Response
+	for i := len(middlewareFuncs) - 1; i >= 0; i-- {
+		wrappedHandlerFunc = middlewareFuncs[i](handlerFunc)
+	}
+
+	telebot.Dispatcher.AddHandler(
+		handlers.NewMessage(message.HasPrefix(prefix), wrappedHandlerFunc))
 }
 
 func (telebot *Telebot) Run() {
