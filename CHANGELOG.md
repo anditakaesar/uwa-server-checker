@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.1](https://github.com/anditakaesar/uwa-server-checker/compare/v1.3.0...v1.3.1) (2024-07-03)
+
+
+### Bug Fixes
+
+* fix middleware issue when multiple middlewares passed ([79554d5](https://github.com/anditakaesar/uwa-server-checker/commit/79554d513baeb66d048d5cebe6faf7bafad3bf22))
+
 ## [1.3.0](https://github.com/anditakaesar/uwa-server-checker/compare/v1.2.0...v1.3.0) (2024-06-22)
 
 
