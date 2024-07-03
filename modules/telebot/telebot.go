@@ -71,20 +71,28 @@ func (telebot *Telebot) InitHandlers() {
 	telebot.AddMessagePrefixHandler(handler.StopContainerPrefix, cmd.StopContainer, defaultMiddlewares...)
 }
 
-func (telebot *Telebot) AddCommandHandler(command string, handlerFunc HandlerFunc, middlewareFuncs ...MiddlewareFunc) {
-	var wrappedHandlerFunc handlers.Response
+func (telebot *Telebot) AddCommandHandler(
+	command string,
+	handlerFunc func(b *gotgbot.Bot, ctx *ext.Context) error,
+	middlewareFuncs ...MiddlewareFunc,
+) {
+	wrappedHandlerFunc := handlerFunc
 	for i := len(middlewareFuncs) - 1; i >= 0; i-- {
-		wrappedHandlerFunc = middlewareFuncs[i](handlerFunc)
+		wrappedHandlerFunc = middlewareFuncs[i](wrappedHandlerFunc)
 	}
 
 	telebot.Dispatcher.AddHandler(
 		handlers.NewCommand(command, wrappedHandlerFunc))
 }
 
-func (telebot *Telebot) AddMessagePrefixHandler(prefix string, handlerFunc HandlerFunc, middlewareFuncs ...MiddlewareFunc) {
-	var wrappedHandlerFunc handlers.Response
+func (telebot *Telebot) AddMessagePrefixHandler(
+	prefix string,
+	handlerFunc func(b *gotgbot.Bot, ctx *ext.Context) error,
+	middlewareFuncs ...MiddlewareFunc,
+) {
+	wrappedHandlerFunc := handlerFunc
 	for i := len(middlewareFuncs) - 1; i >= 0; i-- {
-		wrappedHandlerFunc = middlewareFuncs[i](handlerFunc)
+		wrappedHandlerFunc = middlewareFuncs[i](wrappedHandlerFunc)
 	}
 
 	telebot.Dispatcher.AddHandler(
