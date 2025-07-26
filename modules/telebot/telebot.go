@@ -21,11 +21,15 @@ type Telebot struct {
 	Dispatcher *ext.Dispatcher
 	Docker     docker.Interface
 	Env        *env.Environment
-	Log        logger.Interface
 }
 
-func New(log logger.Interface, docker docker.Interface) (*Telebot, error) {
+type Dependency struct {
+	Docker docker.Interface
+}
+
+func New(dep Dependency) (*Telebot, error) {
 	env := env.New()
+	log := logger.GetLogInstance()
 	bot, err := gotgbot.NewBot(env.BotToken(), nil)
 	if err != nil {
 		log.Error(fmt.Sprintf("couldn't start telebot with err: %v", err), err)
@@ -45,9 +49,8 @@ func New(log logger.Interface, docker docker.Interface) (*Telebot, error) {
 		Bot:        bot,
 		Updater:    updater,
 		Dispatcher: dispatcher,
-		Docker:     docker,
+		Docker:     dep.Docker,
 		Env:        env,
-		Log:        log,
 	}, nil
 }
 
@@ -101,6 +104,7 @@ func (telebot *Telebot) AddMessagePrefixHandler(
 
 func (telebot *Telebot) Run() {
 	telebot.InitHandlers()
+	log := logger.GetLogInstance()
 	err := telebot.Updater.StartPolling(telebot.Bot, &ext.PollingOpts{
 		DropPendingUpdates: true,
 		GetUpdatesOpts: &gotgbot.GetUpdatesOpts{
@@ -111,10 +115,10 @@ func (telebot *Telebot) Run() {
 		},
 	})
 	if err != nil {
-		telebot.Log.Error(fmt.Sprintf("failed to start polling: "+err.Error()), err)
+		log.Error(fmt.Sprintf("failed to start polling: %s", err.Error()), err)
 		panic(err)
 	}
 
-	telebot.Log.Info(fmt.Sprintf("%s has been started...\n", telebot.Bot.User.Username))
+	log.Info(fmt.Sprintf("%s has been started...\n", telebot.Bot.User.Username))
 	telebot.Updater.Idle()
 }

@@ -7,6 +7,7 @@ import (
 
 	"github.com/anditakaesar/uwa-server-checker/internal/env"
 	"github.com/anditakaesar/uwa-server-checker/internal/initializer"
+	"github.com/anditakaesar/uwa-server-checker/internal/logger"
 	internalRouter "github.com/anditakaesar/uwa-server-checker/internal/router"
 )
 
@@ -18,12 +19,13 @@ func main() {
 	}
 
 	init := initializer.New(router)
+	// init database here
 	err := init.InitModules()
 	if err != nil {
 		log.Fatalf("couldn't start modules with err: %v", err)
 	}
 
-	defer init.Log.Flush()
+	defer logger.GetLogInstance().Flush()
 
 	go init.Services.TelebotSvc.Run()
 
@@ -32,7 +34,7 @@ func main() {
 		Handler: internalRouter.NewHandlerServer(router, env),
 	}
 
-	init.Log.Info(fmt.Sprintf("server run on port: %s", env.AppPort()))
+	logger.GetLogInstance().Info(fmt.Sprintf("server run on port: %s", env.AppPort()))
 	err = server.ListenAndServe()
 	if err != nil {
 		log.Fatalf("couldn't start server with err: %v", err)

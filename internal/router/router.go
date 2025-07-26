@@ -13,7 +13,6 @@ import (
 type Router struct {
 	ServeMux  *http.ServeMux
 	Env       *env.Environment
-	Log       logger.Interface
 	Endpoints []Endpoint
 }
 
@@ -83,7 +82,7 @@ func (router *Router) LogRequest(originalHandler http.Handler) http.Handler {
 			"query":    r.URL.Query(),
 			"host":     r.Host,
 		}
-		router.Log.Info(fmt.Sprintf("%s %s", r.Method, r.URL.String()), zap.Any("httpRequest", httpRequest))
+		logger.GetLogInstance().Info(fmt.Sprintf("%s %s", r.Method, r.URL.String()), zap.Any("httpRequest", httpRequest))
 		originalHandler.ServeHTTP(w, r)
 	})
 }

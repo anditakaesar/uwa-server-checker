@@ -2,7 +2,6 @@ package docker
 
 import (
 	"github.com/anditakaesar/uwa-server-checker/dto"
-	"github.com/anditakaesar/uwa-server-checker/internal/logger"
 	docker "github.com/fsouza/go-dockerclient"
 )
 
@@ -16,10 +15,9 @@ type Interface interface {
 
 type Docker struct {
 	Client *docker.Client
-	Log    logger.Interface
 }
 
-func New(log logger.Interface) (Interface, error) {
+func New() (Interface, error) {
 	client, err := docker.NewClientFromEnv()
 	if err != nil {
 		panic(err)
@@ -27,7 +25,6 @@ func New(log logger.Interface) (Interface, error) {
 
 	return &Docker{
 		Client: client,
-		Log:    log,
 	}, nil
 }
 

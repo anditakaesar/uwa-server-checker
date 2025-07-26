@@ -6,6 +6,7 @@ import (
 
 	"github.com/PaulSonOfLars/gotgbot/v2"
 	"github.com/PaulSonOfLars/gotgbot/v2/ext"
+	"github.com/anditakaesar/uwa-server-checker/internal/logger"
 	"go.uber.org/zap"
 )
 
@@ -25,7 +26,8 @@ func (telebot *Telebot) isValidUser(userID int64) bool {
 
 func (telebot *Telebot) LoggingMiddleware(handlerFunc HandlerFunc) func(b *gotgbot.Bot, ctx *ext.Context) error {
 	return func(b *gotgbot.Bot, ctx *ext.Context) error {
-		telebot.Log.Info(fmt.Sprintf("request from userID: %d (%s)", ctx.EffectiveUser.Id, ctx.EffectiveUser.Username), zap.Any("effectiveMessage", ctx.EffectiveMessage))
+
+		logger.GetLogInstance().Info(fmt.Sprintf("request from userID: %d (%s)", ctx.EffectiveUser.Id, ctx.EffectiveUser.Username), zap.Any("effectiveMessage", ctx.EffectiveMessage))
 		return handlerFunc(b, ctx)
 	}
 }

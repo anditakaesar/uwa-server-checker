@@ -1,13 +1,17 @@
 package logger
 
 import (
+	"net/http"
 	"os"
 
+	"github.com/anditakaesar/uwa-server-checker/internal/env"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
 const NoticeLevel zapcore.Level = zapcore.DebugLevel - 1
+
+var logInstance *Logger
 
 type Interface interface {
 	Info(string, ...zapcore.Field)
@@ -41,12 +45,22 @@ func (l *Logger) Flush() {
 	go l.zap.Sync()
 }
 
-func NewLogger(ld *LoggerDependency) Interface {
-	defer ld.Zap.Sync()
-
-	return &Logger{
-		zap: ld.Zap,
+func GetLogInstance() Interface {
+	if logInstance != nil {
+		return logInstance
 	}
+
+	newClient := http.Client{}
+	logglyCore := NewLogglyZapCore(NewLogglyLogWriter(
+		LogglyLogWriterDependency{
+			HttpClient:    &newClient,
+			BaseUrl:       env.LogglyBaseUrl(),
+			CustomerToken: env.LogglyToken(),
+			Tag:           env.LogglyTag(),
+		},
+	))
+
+	return BuildNewLogger(logglyCore)
 }
 
 func BuildNewLogger(cores ...zapcore.Core) Interface {
@@ -64,7 +78,8 @@ func BuildNewLogger(cores ...zapcore.Core) Interface {
 	newZap := zap.New(core, zap.AddCallerSkip(1))
 
 	defer newZap.Sync()
-	return NewLogger(&LoggerDependency{
-		Zap: newZap,
-	})
+
+	return &Logger{
+		zap: newZap,
+	}
 }
