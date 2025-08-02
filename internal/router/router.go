@@ -106,7 +106,7 @@ func (router *Router) CorsHandler() http.Handler {
 	})
 }
 
-func NewHandlerServer(router *Router, env *env.Environment) *http.ServeMux {
+func NewHandlerServer(router *Router) *http.ServeMux {
 	router.InitEndpoints()
 	return router.ServeMux
 }

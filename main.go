@@ -9,7 +9,6 @@ import (
 	"syscall"
 
 	"github.com/anditakaesar/uwa-server-checker/internal"
-	"github.com/anditakaesar/uwa-server-checker/internal/env"
 	"github.com/anditakaesar/uwa-server-checker/internal/logger"
 	"github.com/anditakaesar/uwa-server-checker/modules/health"
 	"github.com/anditakaesar/uwa-server-checker/modules/telebot"
@@ -28,9 +27,7 @@ func main() {
 	}
 
 	modules := []internal.Module{
-		&health.Module{
-			Addr: env.New().GetAddrPort(),
-		},
+		&health.Module{},
 		&telebot.Module{},
 	}
 

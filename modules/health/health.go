@@ -13,29 +13,28 @@ import (
 	"github.com/anditakaesar/uwa-server-checker/internal/router"
 )
 
-type Module struct {
-	Addr string
-}
+type Module struct{}
 
 func (s *Module) Start(ctx context.Context, wg *sync.WaitGroup, errCh chan<- error, dep internal.Dependency) {
 	log := logger.GetLogInstance()
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
+		env := env.New()
 		httprouter := &router.Router{
 			ServeMux: http.NewServeMux(),
-			Env:      env.New(),
+			Env:      env,
 		}
 		new(httprouter)
 
 		server := &http.Server{
-			Addr:    s.Addr,
-			Handler: router.NewHandlerServer(httprouter, httprouter.Env),
+			Addr:    env.GetAddrPort(),
+			Handler: router.NewHandlerServer(httprouter),
 		}
 
 		// Start server in separate goroutine
 		go func() {
-			log.Info(fmt.Sprintf("HTTP server starting on %s", s.Addr))
+			log.Info(fmt.Sprintf("HTTP server starting on %s", env.GetAddrPort()))
 			if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 				errCh <- fmt.Errorf("HTTP server error: %w", err)
 			}
