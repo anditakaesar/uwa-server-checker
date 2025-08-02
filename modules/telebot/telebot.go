@@ -1,7 +1,10 @@
 package telebot
 
 import (
+	"context"
 	"fmt"
+	"net/http"
+	"sync"
 	"time"
 
 	"github.com/PaulSonOfLars/gotgbot/v2"
@@ -10,6 +13,7 @@ import (
 	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers/filters/message"
 
 	"github.com/anditakaesar/uwa-server-checker/adapter/docker"
+	"github.com/anditakaesar/uwa-server-checker/internal"
 	"github.com/anditakaesar/uwa-server-checker/internal/env"
 	"github.com/anditakaesar/uwa-server-checker/internal/logger"
 	"github.com/anditakaesar/uwa-server-checker/modules/telebot/handler"
@@ -102,7 +106,7 @@ func (telebot *Telebot) AddMessagePrefixHandler(
 		handlers.NewMessage(message.HasPrefix(prefix), wrappedHandlerFunc))
 }
 
-func (telebot *Telebot) Run() {
+func (telebot *Telebot) run() error {
 	telebot.InitHandlers()
 	log := logger.GetLogInstance()
 	err := telebot.Updater.StartPolling(telebot.Bot, &ext.PollingOpts{
@@ -116,9 +120,48 @@ func (telebot *Telebot) Run() {
 	})
 	if err != nil {
 		log.Error(fmt.Sprintf("failed to start polling: %s", err.Error()), err)
-		panic(err)
+		return err
 	}
 
 	log.Info(fmt.Sprintf("%s has been started...\n", telebot.Bot.User.Username))
 	telebot.Updater.Idle()
+	return nil
+}
+
+func (telebot *Telebot) shutdown() error {
+	_, err := telebot.Bot.Close(nil)
+	return err
+}
+
+type Module struct{}
+
+func (mod *Module) Start(ctx context.Context, wg *sync.WaitGroup, errCh chan<- error, dep internal.Dependency) {
+	log := logger.GetLogInstance()
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		botObj, err := New(Dependency{
+			Docker: dep.Adapter.Docker,
+		})
+		if err != nil {
+			log.Error("failed to initialize bot object", err)
+			errCh <- fmt.Errorf("initialize bot server error: %w", err)
+			return
+		}
+
+		// Start server in separate goroutine
+		go func() {
+			if err := botObj.run(); err != nil && err != http.ErrServerClosed {
+				errCh <- fmt.Errorf("TelebotModule start error: %w", err)
+			}
+		}()
+
+		// Wait for shutdown signal
+		<-ctx.Done()
+		log.Info("Shutting down TelebotModule...")
+		if err := botObj.shutdown(); err != nil {
+			errCh <- fmt.Errorf("TelebotModule shutdown error: %w", err)
+		}
+	}()
 }

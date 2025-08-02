@@ -1,4 +1,4 @@
-package beelink
+package health
 
 import (
 	"fmt"

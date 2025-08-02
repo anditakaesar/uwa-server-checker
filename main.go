@@ -1,42 +1,61 @@
 package main
 
 import (
+	"context"
 	"fmt"
-	"log"
-	"net/http"
+	"os"
+	"os/signal"
+	"sync"
+	"syscall"
 
+	"github.com/anditakaesar/uwa-server-checker/internal"
 	"github.com/anditakaesar/uwa-server-checker/internal/env"
-	"github.com/anditakaesar/uwa-server-checker/internal/initializer"
 	"github.com/anditakaesar/uwa-server-checker/internal/logger"
-	internalRouter "github.com/anditakaesar/uwa-server-checker/internal/router"
+	"github.com/anditakaesar/uwa-server-checker/modules/health"
+	"github.com/anditakaesar/uwa-server-checker/modules/telebot"
 )
 
 func main() {
-	env := env.New()
-	router := &internalRouter.Router{
-		ServeMux: http.NewServeMux(),
-		Env:      env,
-	}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-	init := initializer.New(router)
-	// init database here
-	err := init.InitModules()
+	log := logger.GetLogInstance()
+	defer log.Flush()
+
+	adapter, err := internal.InitializeAdapters()
 	if err != nil {
-		log.Fatalf("couldn't start modules with err: %v", err)
+		os.Exit(1)
 	}
 
-	defer logger.GetLogInstance().Flush()
-
-	go init.Services.TelebotSvc.Run()
-
-	server := &http.Server{
-		Addr:    env.GetAddrPort(),
-		Handler: internalRouter.NewHandlerServer(router, env),
+	modules := []internal.Module{
+		&health.Module{
+			Addr: env.New().GetAddrPort(),
+		},
+		&telebot.Module{},
 	}
 
-	logger.GetLogInstance().Info(fmt.Sprintf("server run on port: %s", env.AppPort()))
-	err = server.ListenAndServe()
-	if err != nil {
-		log.Fatalf("couldn't start server with err: %v", err)
+	var wg sync.WaitGroup
+	errCh := make(chan error, len(modules))
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+
+	moduleDep := internal.Dependency{
+		Adapter: adapter,
 	}
+
+	for _, module := range modules {
+		module.Start(ctx, &wg, errCh, moduleDep)
+	}
+
+	select {
+	case sig := <-sigCh:
+		log.Info(fmt.Sprintf("Received signal: %v", sig))
+		cancel()
+	case err := <-errCh:
+		log.Error("Module Error", err)
+		cancel()
+	}
+
+	wg.Wait()
+	log.Info("Application shutdown complete")
 }
