@@ -18,9 +18,20 @@ func (h *Handler) getContainerIDFromMessage(messageStr string, prefix string) (s
 }
 
 func (h *Handler) StartContainer(b *gotgbot.Bot, ctx *ext.Context) error {
-	containerID, err := h.getContainerIDFromMessage(ctx.Update.Message.Text, StartContainerPrefix)
-	if err != nil {
-		return err
+	var containerID string
+	var err error
+	if ctx.Update.Message != nil {
+		containerID, err = h.getContainerIDFromMessage(ctx.Update.Message.Text, StartContainerPrefix)
+		if err != nil {
+			return fmt.Errorf("couldn't get containerID from message: %v", err)
+		}
+	} else if ctx.Update.CallbackQuery != nil {
+		containerID, err = h.getContainerIDFromMessage(ctx.Update.CallbackQuery.Data, StartContainerPrefix)
+		if err != nil {
+			return fmt.Errorf("couldn't get containerID from CallbackQuery: %v", err)
+		}
+	} else {
+		return fmt.Errorf("couldn't start container with empty ID")
 	}
 
 	err = h.Docker.StartContainer(containerID)
@@ -28,7 +39,7 @@ func (h *Handler) StartContainer(b *gotgbot.Bot, ctx *ext.Context) error {
 		return err
 	}
 
-	_, err = ctx.EffectiveMessage.Chat.SendMessage(b, "Container Started", &gotgbot.SendMessageOpts{
+	_, err = ctx.EffectiveMessage.Chat.SendMessage(b, fmt.Sprintf("Container %s Started", containerID), &gotgbot.SendMessageOpts{
 		ParseMode: "HTML",
 	})
 	if err != nil {
@@ -39,9 +50,20 @@ func (h *Handler) StartContainer(b *gotgbot.Bot, ctx *ext.Context) error {
 }
 
 func (h *Handler) StopContainer(b *gotgbot.Bot, ctx *ext.Context) error {
-	containerID, err := h.getContainerIDFromMessage(ctx.Update.Message.Text, StopContainerPrefix)
-	if err != nil {
-		return err
+	var containerID string
+	var err error
+	if ctx.Update.Message != nil {
+		containerID, err = h.getContainerIDFromMessage(ctx.Update.Message.Text, StartContainerPrefix)
+		if err != nil {
+			return fmt.Errorf("couldn't get containerID from message: %v", err)
+		}
+	} else if ctx.Update.CallbackQuery != nil {
+		containerID, err = h.getContainerIDFromMessage(ctx.Update.CallbackQuery.Data, StartContainerPrefix)
+		if err != nil {
+			return fmt.Errorf("couldn't get containerID from CallbackQuery: %v", err)
+		}
+	} else {
+		return fmt.Errorf("couldn't start container with empty ID")
 	}
 
 	err = h.Docker.StopContainer(containerID)
@@ -49,7 +71,7 @@ func (h *Handler) StopContainer(b *gotgbot.Bot, ctx *ext.Context) error {
 		return err
 	}
 
-	_, err = ctx.EffectiveMessage.Chat.SendMessage(b, "Container Stopped", &gotgbot.SendMessageOpts{
+	_, err = ctx.EffectiveMessage.Chat.SendMessage(b, fmt.Sprintf("Container %s Stoped", containerID), &gotgbot.SendMessageOpts{
 		ParseMode: "HTML",
 	})
 	if err != nil {

@@ -28,10 +28,46 @@ type Handler struct {
 	Env    *env.Environment
 }
 
-func (h *Handler) Get(b *gotgbot.Bot, ctx *ext.Context) error {
-	_, err := ctx.EffectiveMessage.Reply(b, h.returnGetCommand(), &gotgbot.SendMessageOpts{
+func (h *Handler) GetOpenAddress(b *gotgbot.Bot, ctx *ext.Context) error {
+	containers, err := h.Docker.GetContainersByName(h.Env.TunnelContainerName())
+	if err != nil {
+		return fmt.Errorf("failed to get container list: %w", err)
+	}
+
+	sendMessageOpts := gotgbot.SendMessageOpts{
 		ParseMode: "HTML",
-	})
+	}
+
+	row1 := []gotgbot.InlineKeyboardButton{}
+	bodyMessage := strings.Builder{}
+	for _, container := range containers {
+		fmt.Fprintf(&bodyMessage, "ID: <b>%s</b> \nName: <b>%s</b> \nState: <i>%s</i>\n",
+			container.ID, container.GetNames(), container.State)
+		switch container.State {
+		case ContainerExitedState:
+			row1 = append(row1, gotgbot.InlineKeyboardButton{
+				Text:         "Start",
+				CallbackData: fmt.Sprintf("%s%s", StartContainerPrefix, container.ID),
+			})
+		case ContainerRunningState:
+			row1 = append(row1, gotgbot.InlineKeyboardButton{
+				Text:         "Stop",
+				CallbackData: fmt.Sprintf("%s%s", StopContainerPrefix, container.ID),
+			})
+		}
+		bodyMessage.WriteString("\n\n")
+	}
+
+	bodyMessage.WriteString(h.returnGetCommand())
+	if len(row1) > 0 {
+		sendMessageOpts.ReplyMarkup = gotgbot.InlineKeyboardMarkup{
+			InlineKeyboard: [][]gotgbot.InlineKeyboardButton{
+				row1,
+			},
+		}
+	}
+
+	_, err = ctx.EffectiveMessage.Reply(b, bodyMessage.String(), &sendMessageOpts)
 	if err != nil {
 		return fmt.Errorf("failed to send start message: %w", err)
 	}
@@ -77,6 +113,9 @@ func parseSizePage(data string) (int, int) {
 
 func (h *Handler) FindContainerByName(b *gotgbot.Bot, ctx *ext.Context) error {
 	text := strings.Split(ctx.Update.Message.Text, " ")
+	if len(text) < 2 {
+		return fmt.Errorf("please specify name criteria")
+	}
 	containers, err := h.Docker.GetContainersByName(text[1])
 	if err != nil {
 		return fmt.Errorf("failed to get container list: %w", err)

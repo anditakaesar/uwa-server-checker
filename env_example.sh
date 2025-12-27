@@ -9,3 +9,4 @@ export BotToken=""
 export ValidUserIDs=""
 ### Telebot Commands
 export TelebotGetCommand="curl -s api/tunnels"
+export TunnelContainerName="specified-container"

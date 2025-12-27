@@ -71,11 +71,13 @@ func (telebot *Telebot) InitHandlers() {
 	}
 
 	// Commands
-	telebot.AddCommandHandler("get", cmd.Get, defaultMiddlewares...)
+	telebot.AddCommandHandler("get", cmd.GetOpenAddress, defaultMiddlewares...)
 	telebot.AddCommandHandler("containers", cmd.InitializeReplyContainerPaging, defaultMiddlewares...)
 
 	// Callbacks
 	telebot.AddCallbackHandler(handler.ContainerPagingPrefix, cmd.ProcessCallbackContainerPaging, defaultMiddlewares...)
+	telebot.AddCallbackHandler(handler.StartContainerPrefix, cmd.StartContainer, defaultMiddlewares...)
+	telebot.AddCallbackHandler(handler.StopContainerPrefix, cmd.StopContainer, defaultMiddlewares...)
 
 	// Messages
 	telebot.AddMessagePrefixHandler(handler.StartContainerPrefix, cmd.StartContainer, defaultMiddlewares...)

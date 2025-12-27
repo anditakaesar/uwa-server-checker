@@ -111,3 +111,7 @@ func readApiToken() {
 
 	apiToken = &envApiToken
 }
+
+func (e *Environment) TunnelContainerName() string {
+	return os.Getenv("TunnelContainerName")
+}
