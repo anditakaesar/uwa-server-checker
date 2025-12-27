@@ -9,6 +9,7 @@ const DefaultTimeout uint = 5
 
 type Interface interface {
 	GetContainerListWithPaging(size, page int) (*dto.ContainerWithPaging, error)
+	GetContainersByName(name string) ([]dto.Container, error)
 	StartContainer(containerID string) error
 	StopContainer(containerID string) error
 }
@@ -26,6 +27,30 @@ func New() (Interface, error) {
 	return &Docker{
 		Client: client,
 	}, nil
+}
+
+func (d *Docker) GetContainersByName(name string) ([]dto.Container, error) {
+	containers, err := d.Client.ListContainers(docker.ListContainersOptions{
+		All: true,
+		Filters: map[string][]string{
+			"name": []string{name},
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	resultList := make([]dto.Container, len(containers))
+	for i, container := range containers {
+		resultList[i] = dto.Container{
+			ID:     container.ID[:12],
+			State:  container.State,
+			Status: container.Status,
+			Names:  container.Names,
+		}
+	}
+
+	return resultList, nil
 }
 
 func (d *Docker) GetContainerListWithPaging(size, page int) (*dto.ContainerWithPaging, error) {

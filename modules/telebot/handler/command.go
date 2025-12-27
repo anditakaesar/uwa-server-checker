@@ -15,6 +15,7 @@ import (
 const (
 	StartContainerPrefix  string = "/startContainer_"
 	StopContainerPrefix   string = "/stopContainer_"
+	FindContainerPrefix   string = "/findcontainer"
 	ContainerPagingPrefix string = "containerspg_"
 	Splitter              string = "_"
 
@@ -72,6 +73,37 @@ func parseSizePage(data string) (int, int) {
 	}
 
 	return size, page
+}
+
+func (h *Handler) FindContainerByName(b *gotgbot.Bot, ctx *ext.Context) error {
+	text := strings.Split(ctx.Update.Message.Text, " ")
+	containers, err := h.Docker.GetContainersByName(text[1])
+	if err != nil {
+		return fmt.Errorf("failed to get container list: %w", err)
+	}
+
+	sendMessageOpts := gotgbot.SendMessageOpts{
+		ParseMode: "HTML",
+	}
+	bodyMessage := strings.Builder{}
+	for _, container := range containers {
+		fmt.Fprintf(&bodyMessage, "ID: <b>%s</b> \nName: <b>%s</b> \nState: <i>%s</i>\n",
+			container.ID, container.GetNames(), container.State)
+		switch container.State {
+		case ContainerExitedState:
+			fmt.Fprintf(&bodyMessage, "%s%s", StartContainerPrefix, container.ID)
+		case ContainerRunningState:
+			fmt.Fprintf(&bodyMessage, "%s%s", StopContainerPrefix, container.ID)
+		}
+		bodyMessage.WriteString("\n\n")
+	}
+
+	_, err = ctx.EffectiveMessage.Chat.SendMessage(b, bodyMessage.String(), &sendMessageOpts)
+	if err != nil {
+		return fmt.Errorf("failed to send FindContainerByName message: %w", err)
+	}
+
+	return nil
 }
 
 func (h *Handler) InitializeReplyContainerPaging(b *gotgbot.Bot, ctx *ext.Context) error {

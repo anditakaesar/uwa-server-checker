@@ -80,6 +80,7 @@ func (telebot *Telebot) InitHandlers() {
 	// Messages
 	telebot.AddMessagePrefixHandler(handler.StartContainerPrefix, cmd.StartContainer, defaultMiddlewares...)
 	telebot.AddMessagePrefixHandler(handler.StopContainerPrefix, cmd.StopContainer, defaultMiddlewares...)
+	telebot.AddMessagePrefixHandler(handler.FindContainerPrefix, cmd.FindContainerByName, defaultMiddlewares...)
 }
 
 func (telebot *Telebot) AddCommandHandler(
