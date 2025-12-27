@@ -17,3 +17,12 @@ func (c *Container) GetNames() string {
 
 	return strings.Join(strippedNames, ", ")
 }
+
+type ContainerWithPaging struct {
+	List    []Container
+	Total   int
+	Size    int
+	Page    int
+	HasNext bool
+	HasPrev bool
+}

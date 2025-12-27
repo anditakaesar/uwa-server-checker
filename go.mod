@@ -1,8 +1,6 @@
 module github.com/anditakaesar/uwa-server-checker
 
-go 1.24.0
-
-toolchain go1.24.3
+go 1.25.5
 
 require (
 	github.com/fsouza/go-dockerclient v1.11.0

@@ -10,6 +10,7 @@ import (
 	"github.com/PaulSonOfLars/gotgbot/v2"
 	"github.com/PaulSonOfLars/gotgbot/v2/ext"
 	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers"
+	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers/filters/callbackquery"
 	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers/filters/message"
 
 	"github.com/anditakaesar/uwa-server-checker/adapter/docker"
@@ -71,7 +72,10 @@ func (telebot *Telebot) InitHandlers() {
 
 	// Commands
 	telebot.AddCommandHandler("get", cmd.Get, defaultMiddlewares...)
-	telebot.AddCommandHandler("containers", cmd.Containers, defaultMiddlewares...)
+	telebot.AddCommandHandler("containers", cmd.InitializeReplyContainerPaging, defaultMiddlewares...)
+
+	// Callbacks
+	telebot.AddCallbackHandler(handler.ContainerPagingPrefix, cmd.ProcessCallbackContainerPaging, defaultMiddlewares...)
 
 	// Messages
 	telebot.AddMessagePrefixHandler(handler.StartContainerPrefix, cmd.StartContainer, defaultMiddlewares...)
@@ -90,6 +94,19 @@ func (telebot *Telebot) AddCommandHandler(
 
 	telebot.Dispatcher.AddHandler(
 		handlers.NewCommand(command, wrappedHandlerFunc))
+}
+
+func (telebot *Telebot) AddCallbackHandler(
+	prefix string,
+	handlerFunc func(b *gotgbot.Bot, ctx *ext.Context) error,
+	middlewareFuncs ...MiddlewareFunc,
+) {
+	wrappedHandlerFunc := handlerFunc
+	for i := len(middlewareFuncs) - 1; i >= 0; i-- {
+		wrappedHandlerFunc = middlewareFuncs[i](wrappedHandlerFunc)
+	}
+
+	telebot.Dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix(prefix), handlerFunc))
 }
 
 func (telebot *Telebot) AddMessagePrefixHandler(

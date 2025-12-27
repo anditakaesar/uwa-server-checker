@@ -8,7 +8,7 @@ import (
 const DefaultTimeout uint = 5
 
 type Interface interface {
-	GetContainerList() ([]dto.Container, error)
+	GetContainerListWithPaging(size, page int) (*dto.ContainerWithPaging, error)
 	StartContainer(containerID string) error
 	StopContainer(containerID string) error
 }
@@ -28,7 +28,12 @@ func New() (Interface, error) {
 	}, nil
 }
 
-func (d *Docker) GetContainerList() ([]dto.Container, error) {
+func (d *Docker) GetContainerListWithPaging(size, page int) (*dto.ContainerWithPaging, error) {
+	result := dto.ContainerWithPaging{
+		Size: size,
+		Page: page,
+	}
+
 	containers, err := d.Client.ListContainers(docker.ListContainersOptions{
 		All: true,
 	})
@@ -36,17 +41,33 @@ func (d *Docker) GetContainerList() ([]dto.Container, error) {
 		return nil, err
 	}
 
-	response := make([]dto.Container, 0, len(containers))
-	for _, container := range containers {
-		response = append(response, dto.Container{
+	total := len(containers)
+	result.Total = total
+	maxPage := total / size
+	if total%size > 0 {
+		maxPage += 1
+	}
+
+	if page < maxPage {
+		containers = containers[(page-1)*size : page*size]
+	} else {
+		containers = containers[total-1:]
+	}
+
+	resultList := make([]dto.Container, len(containers))
+	for i, container := range containers {
+		resultList[i] = dto.Container{
 			ID:     container.ID[:12],
 			State:  container.State,
 			Status: container.Status,
 			Names:  container.Names,
-		})
+		}
 	}
+	result.List = resultList
+	result.HasPrev = page-1 > 0
+	result.HasNext = page+1 < maxPage
 
-	return response, nil
+	return &result, nil
 }
 
 func (d *Docker) StartContainer(containerID string) error {
