@@ -10,3 +10,4 @@ export ValidUserIDs=""
 ### Telebot Commands
 export TelebotGetCommand="curl -s api/tunnels"
 export TunnelContainerName="specified-container"
+export TelebotBackupBitwarden="/path/to/my.sh"

@@ -29,3 +29,7 @@ func (e *Environment) ValidUserIDs() []string {
 func (e *Environment) TelebotGetCommand() string {
 	return os.Getenv("TelebotGetCommand")
 }
+
+func (e *Environment) TelebotBackupBitwarden() string {
+	return os.Getenv("TelebotBackupBitwarden")
+}

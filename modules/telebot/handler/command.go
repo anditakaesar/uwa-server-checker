@@ -243,3 +243,33 @@ func (h *Handler) ProcessCallbackContainerPaging(b *gotgbot.Bot, ctx *ext.Contex
 
 	return nil
 }
+
+func (h *Handler) RunBitwardenBackup(b *gotgbot.Bot, ctx *ext.Context) error {
+	sendMessageOpts := gotgbot.SendMessageOpts{
+		ParseMode: "HTML",
+	}
+
+	bodyMessage := strings.Builder{}
+	backupScript := h.Env.TelebotBackupBitwarden()
+
+	if strings.TrimSpace(backupScript) == "" {
+		bodyMessage.WriteString("Env backupscript is empty")
+	} else {
+		bodyMessage.WriteString(h.returnScriptOutput(backupScript))
+	}
+
+	_, err := ctx.EffectiveMessage.Reply(b, bodyMessage.String(), &sendMessageOpts)
+	if err != nil {
+		return fmt.Errorf("failed to send start message: %w", err)
+	}
+	return nil
+}
+
+func (h *Handler) returnScriptOutput(scriptPath string) string {
+	out, err := exec.Command("bash", scriptPath).CombinedOutput()
+	if err != nil {
+		return fmt.Sprintf("failed to execute command: %s, error: %v, script output: %s", scriptPath, err, string(out))
+	}
+
+	return string(out)
+}

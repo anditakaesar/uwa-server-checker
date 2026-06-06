@@ -73,6 +73,7 @@ func (telebot *Telebot) InitHandlers() {
 	// Commands
 	telebot.AddCommandHandler("get", cmd.GetOpenAddress, defaultMiddlewares...)
 	telebot.AddCommandHandler("containers", cmd.InitializeReplyContainerPaging, defaultMiddlewares...)
+	telebot.AddCommandHandler("backupbw", cmd.RunBitwardenBackup, defaultMiddlewares...)
 
 	// Callbacks
 	telebot.AddCallbackHandler(handler.ContainerPagingPrefix, cmd.ProcessCallbackContainerPaging, defaultMiddlewares...)
