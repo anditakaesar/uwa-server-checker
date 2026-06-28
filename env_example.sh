@@ -7,6 +7,7 @@ export LogglyToken=""
 export LogglyTag=""
 export BotToken=""
 export ValidUserIDs=""
+export NotificationChatID=""
 ### Telebot Commands
 export TelebotGetCommand="curl -s api/tunnels"
 export TunnelContainerName="specified-container"

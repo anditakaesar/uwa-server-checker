@@ -7,12 +7,14 @@ import (
 
 	"github.com/anditakaesar/uwa-server-checker/internal/env"
 	"github.com/anditakaesar/uwa-server-checker/internal/logger"
+	"github.com/anditakaesar/uwa-server-checker/modules/telebot"
 	"go.uber.org/zap"
 )
 
 type Router struct {
 	ServeMux  *http.ServeMux
 	Env       *env.Environment
+	Telebot   *telebot.Telebot
 	Endpoints []Endpoint
 }
 

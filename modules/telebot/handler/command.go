@@ -273,3 +273,19 @@ func (h *Handler) returnScriptOutput(scriptPath string) string {
 
 	return string(out)
 }
+
+func (h *Handler) InitializeChatID(b *gotgbot.Bot, ctx *ext.Context) error {
+	bodyMessage := strings.Builder{}
+	bodyMessage.WriteString("Your ChatID: ")
+	chatID := ctx.EffectiveMessage.Chat.Id
+	h.Env.SetNotificationChatID(&chatID)
+	fmt.Fprint(&bodyMessage, chatID)
+	_, err := ctx.EffectiveMessage.Chat.SendMessage(b, bodyMessage.String(), &gotgbot.SendMessageOpts{
+		ParseMode: "HTML",
+	})
+	if err != nil {
+		return fmt.Errorf("failed to send FindContainerByName message: %w", err)
+	}
+
+	return nil
+}

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/google/uuid"
@@ -17,10 +18,11 @@ const (
 )
 
 var (
-	envPtr       *Environment
-	appVersion   *string
-	apiToken     *string
-	validUserIds []string
+	envPtr             *Environment
+	appVersion         *string
+	apiToken           *string
+	validUserIds       []string
+	notificationChatID *int64
 )
 
 type Environment struct{}
@@ -33,9 +35,29 @@ func New() *Environment {
 	readApiToken()
 	readBotToken()
 	readValidUserIDs()
+	readNotificationChatID()
 
 	envPtr = &Environment{}
 	return envPtr
+}
+
+func (e *Environment) SetNotificationChatID(newvalue *int64) {
+	notificationChatID = newvalue
+}
+
+func (e *Environment) NotificationChatID() *int64 {
+	return notificationChatID
+}
+
+func readNotificationChatID() {
+	envValue := os.Getenv("NotificationChatID")
+
+	newvalue, err := strconv.ParseInt(envValue, 10, 64)
+	if err != nil {
+		return
+	}
+
+	notificationChatID = &newvalue
 }
 
 func (e *Environment) AppName() string {
