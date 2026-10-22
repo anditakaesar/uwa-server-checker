@@ -33,6 +33,8 @@ func BuildModules(dep ModDep) (*Module, error) {
 		return nil, err
 	}
 
+	_ = botObj.SendMessage("Power Surge detected! Check system uptime!")
+
 	return &Module{
 		Telebot: botObj,
 	}, nil
